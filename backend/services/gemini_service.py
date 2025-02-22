@@ -39,7 +39,7 @@ def summarize_video_description(frame_descriptions):
         full_text = "Summarize the following video analysis based on different frames:\n\n" + "\n".join(frame_descriptions)
 
         # Request summary from Gemini AI
-        response = model.generate_content(full_text)
+        response = model.generate_content(["Identify the disaster in this video and suggest prevention strategies.",full_text])
 
         return response.text if response else "No summary generated."
 
