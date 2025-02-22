@@ -27,7 +27,20 @@ if uploaded_video:
     if st.button("Analyze Video"):
         files = {"file": uploaded_video.getvalue()}
         response = requests.post(f"{BACKEND_URL}/analyze_video/", files=files)
+        
         if response.status_code == 200:
-            st.write(response.json()["analysis"])
+            analysis = response.json().get("analysis", "No analysis available.")
+            
+            # Check if analysis is a list or dictionary
+            if isinstance(analysis, list):
+                analysis_text = "\n\n".join(analysis)  # Convert list to readable text
+            elif isinstance(analysis, dict):
+                analysis_text = "\n\n".join(f"**{key}:** {value}" for key, value in analysis.items())  # Format dictionary
+            else:
+                analysis_text = analysis  # If already a string
+            
+            # Display the formatted text output
+            st.markdown(f"### Video Analysis Summary:\n\n{analysis_text}")
+
         else:
-            st.error("Error analyzing video.")
+            st.error("Error analyzing video.") 
