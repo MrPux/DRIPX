@@ -1,46 +1,109 @@
 import streamlit as st
-import requests
 
-BACKEND_URL = "http://127.0.0.1:8000"
+# Set page configuration
+st.set_page_config(page_title="Home", layout="wide")
 
-st.title("🌍 SafeCRASH - AI Disaster Detection")
+# Custom CSS using st.markdown() with raw HTML
+st.markdown("""
+    <style>
+    /* Background Gradient */
+    html, body, [data-testid="stAppViewContainer"] {
+        background: linear-gradient(#062b44,#000000,  #000000) !important;
+        color: white !important;
+    }
 
-st.header("🖼️ Upload an Image for AI Analysis")
-uploaded_image = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"])
+    /* Hide Streamlit Sidebar */
+    [data-testid="stSidebar"], [data-testid="collapsedControl"] {
+        display: none;
+    }
 
-if uploaded_image:
-    st.image(uploaded_image, caption="Uploaded Image", use_column_width=True)
-    if st.button("Analyze Image"):
-        files = {"file": ("image.jpg", uploaded_image.getvalue(), "image/jpeg")}
-        response = requests.post(f"{BACKEND_URL}/analyze_image/", files=files)
-        
-        if response.status_code == 200:
-            st.write(response.json()["analysis"])
-        else:
-            st.error(f"Error analyzing image. Server Response: {response.text}")
+    /* Centering the Main Title */
+    .title-container {
+        text-align: center;
+        font-size: 40px;
+        font-weight: bold;
+        color: white;
+        margin-bottom: 20px;
+    }
 
-st.header("🎥 Upload a Video for AI Analysis")
-uploaded_video = st.file_uploader("Choose a video...", type=["mp4", "mov", "avi"])
+    /* Glassmorphic Containers */
+    .glass-container {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(15px);
+        border-radius: 15px;
+        padding: 30px;
+        text-align: center;
+        font-size: 22px;
+        font-weight: bold;
+        color: white;
+        transition: all 0.3s ease-in-out;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        margin: 10px;
+    }
 
-if uploaded_video:
-    st.video(uploaded_video)
-    if st.button("Analyze Video"):
-        files = {"file": uploaded_video.getvalue()}
-        response = requests.post(f"{BACKEND_URL}/analyze_video/", files=files)
-        
-        if response.status_code == 200:
-            analysis = response.json().get("analysis", "No analysis available.")
+    .glass-container:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-5px);
+    }
+
+    /* Button Styling */
+    .custom-button {
+        margin-left:50px;
+        background-color: #6A11CB;
+        color: white !important;
+        border-radius: 10px;
+        font-size: 18px;
+        font-weight: bold;
+        padding: 12px 20px;
+        cursor: pointer;
+        transition: 0.3s ease-in-out;
+        border: none;
+        display: inline-block;
+        text-decoration: none;
+        text-align: center;
+    }
+
+    .custom-button:hover {
+        background-color: #2575fc;
+        transform: scale(1.05);
+    }
             
-            # Check if analysis is a list or dictionary
-            if isinstance(analysis, list):
-                analysis_text = "\n\n".join(analysis)  # Convert list to readable text
-            elif isinstance(analysis, dict):
-                analysis_text = "\n\n".join(f"**{key}:** {value}" for key, value in analysis.items())  # Format dictionary
-            else:
-                analysis_text = analysis  # If already a string
-            
-            # Display the formatted text output
-            st.markdown(f"### Video Analysis Summary:\n\n{analysis_text}")
+   .stButton>button {
+        margin-left:390px;
+        background-color: white;
+        color: black !important;
+    }            
 
-        else:
-            st.error("Error analyzing video.") 
+    </style>
+""", unsafe_allow_html=True)
+
+# Title
+st.markdown("<div class='title-container'>DRIPX</div>", unsafe_allow_html=True)
+
+st.write("")
+
+st.markdown("<div class='title-container'>Disaster Risk & Insurance Prediction eXpert</div>", unsafe_allow_html=True)
+
+st.write("")
+
+# Glassmorphic Layout with 2 rows of clickable containers
+col1, col2 = st.columns(2)
+with col1:
+    st.markdown("<div class='glass-container'>SafeCrash - AI Disaster Detection</div>", unsafe_allow_html=True)
+    if st.button("Explore SafeCrash", key="btn_safecrash"):
+        st.switch_page("pages/appDisasterDetection.py")
+
+with col2:
+    st.markdown("<div class='glass-container'>Page 2 (Coming Soon)</div>", unsafe_allow_html=True)
+    if st.button("View Page 2", key="btn_page2"):
+        st.switch_page("pages/page2.py")
+
+st.write("")
+
+col3, col4 = st.columns(2)
+with col3:
+    st.markdown("<div class='glass-container'>Page 3 (Coming Soon)</div>", unsafe_allow_html=True)
+    if st.button("View Page 3", key="btn_page3"):
+        st.switch_page("pages/page3.py")
+ 
