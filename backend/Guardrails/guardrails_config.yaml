@@ -1,0 +1,13 @@
+schema:
+  - name: disaster_analysis
+    type: string
+    description: >
+      A summarized disaster analysis based on video frames.
+    rules:
+      - type: not_null
+      - type: length
+        min: 10
+        max: 5000
+      - type: contains
+        value: "disaster"
+      - type: json  # Ensures the response is JSON-formatted if needed

@@ -3,55 +3,63 @@ from PIL import Image
 import io
 import cv2
 import os
-from tempfile import NamedTemporaryFile
 from config.settings import GEMINI_API_KEY
+import json
 
 # Configure Gemini API
 genai.configure(api_key=GEMINI_API_KEY)
 
+
+
 def analyze_image(image_path: str):
-    """Analyze an image using Gemini API to detect disasters."""
+    """Analyze an image using Gemini API and return structured JSON."""
     try:
         # Open image using PIL
         with open(image_path, "rb") as image_file:
-            image = Image.open(io.BytesIO(image_file.read()))  # Convert bytes to PIL Image
+            image = Image.open(io.BytesIO(image_file.read()))  
 
-        # Use Gemini 1.5 Flash for vision analysis
+        # Use Gemini AI model
         model = genai.GenerativeModel("gemini-1.5-flash")
 
-        # Generate AI response
-        response = model.generate_content([
-            "Identify the disaster in this image and suggest prevention strategies.",
-            image
-        ])
+        # AI Prompt: Ensure structured JSON
+        prompt = """
+        Analyze this image and return disaster details in JSON format:
+        {
+            "Disaster Type": "Type of disaster (Flood, Earthquake, etc.)",
+            "Country": "Country where disaster occurred",
+            "Region": "Continent or broad region",
+            "Magnitude": "Severity (if applicable)",
+            "Magnitude Scale": "Measurement scale (if applicable)",
+            "CPI": "Consumer Price Index impact (if available)",
+            "Start Year": "Year disaster started",
+            "Start Month": "Month disaster started",
+            "Start Day": "Day disaster started",
+            "End Year": "Year disaster ended",
+            "End Month": "Month disaster ended",
+            "End Day": "Day disaster ended"
+        }
+        If any field is unknown, return an empty string "".
+        Response must be valid JSON format.
+        """
 
-        return response.text if response else "No response from Gemini."
+        # Get AI response
+        response = model.generate_content([prompt, image])
+
+        # Ensure AI response is a string
+        ai_response = response.text if response else "{}"
+
+        print("🔍 Gemini AI Raw Response:\n", ai_response)  # Debugging
+
+        return ai_response
 
     except Exception as e:
-        return f"Gemini API Error: {str(e)}"
-
-def summarize_video_description(frame_descriptions):
-    """Generate a summary of the video based on frame analyses using Gemini AI."""
-    try:
-        model = genai.GenerativeModel("gemini-1.5-flash")
-
-        # Concatenate frame descriptions into one input text
-        full_text = "Summarize the following video analysis based on different frames:\n\n" + "\n".join(frame_descriptions)
-
-        # Request summary from Gemini AI
-        response = model.generate_content(full_text)
-
-        return response.text if response else "No summary generated."
-
-    except Exception as e:
-        return f"Gemini API Error during summary: {str(e)}"
+        return json.dumps({"error": f"Gemini API Error: {str(e)}"})  
 
 def analyze_video(video_path: str, frame_interval=90):
-    """Extract key frames from a video, analyze them, and generate a summary."""
+    """Extract key frames from a video and analyze them using Gemini AI."""
     
     cap = cv2.VideoCapture(video_path)
     frame_count = 0
-    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     insights = []
 
     try:
@@ -60,29 +68,25 @@ def analyze_video(video_path: str, frame_interval=90):
             if not ret:
                 break
 
-            # Process every nth frame (default = every 90 frames)
             if frame_count % frame_interval == 0:
-                with NamedTemporaryFile(suffix=".jpg", delete=False) as temp_file:
-                    frame_path = temp_file.name
-                    cv2.imwrite(frame_path, frame)  # Save frame temporarily
-                    
-                    # Analyze frame using Gemini AI
-                    response = analyze_image(frame_path)
-                    insights.append(f"Frame {frame_count}: {response}")
+                frame = cv2.resize(frame, (640, 480))
+                frame_path = f"frame_{frame_count}.jpg"
+                cv2.imwrite(frame_path, frame)
 
-                    os.remove(frame_path)  # Clean up the temp file after analysis
+                response = analyze_image(frame_path)
+                insights.append(response)
+
+                os.remove(frame_path)
 
             frame_count += 1
 
         cap.release()
-
-        # Generate a final summarized report based on all analyzed frames
-        final_summary = summarize_video_description(insights)
-
-        return {
-
-            "final_summary": final_summary
-        }
+        
+        return json.dumps({
+            "status": "Success",
+            "frames_analyzed": len(insights),
+            "results": insights
+        })
 
     except Exception as e:
-        return {"status": "Error", "message": f"Video Analysis Error: {str(e)}"}
+        return json.dumps({"status": "Error", "message": f"Video Analysis Error: {str(e)}"})
