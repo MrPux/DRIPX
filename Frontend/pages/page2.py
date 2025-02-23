@@ -5,7 +5,7 @@ st.write("Disaster Optimized Oppurtunity Model")
 
 import streamlit as st
 import requests
-
+BACKEND_URL = "http://127.0.0.1:8000"
 API_URL = "http://127.0.0.1:8000/predict"
 
 st.title("🌍 Disaster Data Collection")
